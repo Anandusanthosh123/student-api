@@ -1,8 +1,63 @@
 package main
 
-import "fmt"
+import (
+	"context"
+	"log"
+	"log/slog"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/Anandusanthosh123/students-api/internal/config"
+)
 
 func main() {
+	// load config
+	cfg := config.MustLoad()
 
-	fmt.Println("welcome to students api")
+	// use in built logger package
+	// database setup
+	// setup router
+	router := http.NewServeMux() // returns server mux basically router
+
+	router.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("Welcome to students api"))
+	})
+
+	// setup http server
+
+	server := http.Server{
+		Addr:    cfg.Addr,
+		Handler: router,
+	}
+	slog.Info("Server started %s", slog.String("address", cfg.Addr))
+	// fmt.Printf("Server started %s", cfg.Addr)
+
+	done := make(chan os.Signal, 1) //buffered channel for os signals like interupts
+
+	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM) // if there is a signal from os notify in done channel
+	go func() {
+		err := server.ListenAndServe()
+		if err != nil {
+			log.Fatal("Failed to start server")
+		}
+
+	}()
+	<-done
+
+	//logic for graceful  server shutdown ongoing - request won't affected,but new request is not accepted
+	slog.Info("Shutting down the server") // structured log
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second) //passing a empty context and 5sec timeout
+	defer cancel()
+	if err := server.Shutdown(ctx); err != nil {
+
+		slog.Error("Failed to shutdown server", slog.String("error", err.Error()))
+
+	}
+
+	slog.Info("server shutdown sucessfully")
+
 }
