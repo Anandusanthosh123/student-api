@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/Anandusanthosh123/students-api/internal/config"
+	"github.com/Anandusanthosh123/students-api/internal/http/handlers/student"
 )
 
 func main() {
@@ -22,9 +23,7 @@ func main() {
 	// setup router
 	router := http.NewServeMux() // returns server mux basically router
 
-	router.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Welcome to students api"))
-	})
+	router.HandleFunc("POST /api/students", student.New()) // dependency injection here
 
 	// setup http server
 
@@ -32,7 +31,7 @@ func main() {
 		Addr:    cfg.Addr,
 		Handler: router,
 	}
-	slog.Info("Server started %s", slog.String("address", cfg.Addr))
+	slog.Info("Server Started ", slog.String("address", cfg.Addr))
 	// fmt.Printf("Server started %s", cfg.Addr)
 
 	done := make(chan os.Signal, 1) //buffered channel for os signals like interupts
