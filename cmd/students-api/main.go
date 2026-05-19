@@ -12,6 +12,8 @@ import (
 
 	"github.com/Anandusanthosh123/students-api/internal/config"
 	"github.com/Anandusanthosh123/students-api/internal/http/handlers/student"
+
+	"github.com/Anandusanthosh123/students-api/internal/storage/sqlite"
 )
 
 func main() {
@@ -20,10 +22,18 @@ func main() {
 
 	// use in built logger package
 	// database setup
+
+	storage, err := sqlite.New(cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	slog.Info("storage initialized ", slog.String("env", cfg.Env), slog.String("version", "1.0.0"))
+
 	// setup router
 	router := http.NewServeMux() // returns server mux basically router
 
-	router.HandleFunc("POST /api/students", student.New()) // dependency injection here
+	router.HandleFunc("POST /api/students", student.New(storage)) // dependency injection here
 
 	// setup http server
 
