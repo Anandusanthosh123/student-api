@@ -34,6 +34,7 @@ func main() {
 	router := http.NewServeMux() // returns server mux basically router
 
 	router.HandleFunc("POST /api/students", student.New(storage)) // dependency injection here
+	router.HandleFunc("GET /api/students/{id}", student.GetById(storage))
 
 	// setup http server
 

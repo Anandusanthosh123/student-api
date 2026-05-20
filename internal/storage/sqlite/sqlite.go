@@ -2,8 +2,10 @@ package sqlite
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/Anandusanthosh123/students-api/internal/config"
+	"github.com/Anandusanthosh123/students-api/internal/types"
 	_ "modernc.org/sqlite"
 )
 
@@ -51,4 +53,21 @@ func (s *Sqlite) CreateStudent(name string, email string, age int) (int64, error
 	}
 	return lastid, nil
 
+}
+func (s *Sqlite) GetStudentById(id int64) (types.Student, error) {
+
+	stat, err := s.Db.Prepare("SELECT id,name,email,age FROM students WHERE id = ? LIMIT 1")
+	if err != nil {
+		return types.Student{}, err
+	}
+	defer stat.Close()
+	var student types.Student
+	err = stat.QueryRow(id).Scan(&student.Id, &student.Name, &student.Email, &student.Age)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return types.Student{}, fmt.Errorf("no student found with id %s", fmt.Sprint(id))
+		}
+		return types.Student{}, fmt.Errorf("query error:%w", err)
+	}
+	return student, nil
 }
