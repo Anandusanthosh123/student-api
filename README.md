@@ -90,7 +90,7 @@ cd students-api
 
 ### 3) Run
 ```bash
-go run ./cmd/students-api
+go run cmd/students-api/main.go -config config/local.yaml
 ```
 
 ### 4) Verify
